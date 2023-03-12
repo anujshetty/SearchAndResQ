@@ -6,7 +6,7 @@ from operator import add
 
 class Gridworld:
     def __init__(self, gridworld_length=2, gridworld_width=10, num_obstacles=10,
-                 collisionReward= -1, destinationReward= 10, defaultReward= 0, failChance= 0.1, gamma= 0.9):
+                 collisionReward= -1, destinationReward= 10, defaultReward= 0, outOfBoundsReward = -1, failChance= 0.1, gamma= 0.9):
         self.gridworld_length = gridworld_length
         self.gridworld_width = gridworld_width
         self.grid = np.zeros((gridworld_length,gridworld_width))
@@ -15,6 +15,7 @@ class Gridworld:
         self.actions= list(self.ds_actions.keys()),
         self.num_obstacles = num_obstacles
         self.source, self.destination, self.obstacle_positions = self.initiate_gridworld()
+        self.num_orientations = 4
         # Initialize 1 of 4 orientations for agent to be facing
         orientation = random.randint(0,3)
         self.state = self.source + [orientation]
@@ -24,6 +25,7 @@ class Gridworld:
         self.defaultReward = defaultReward
         self.failChance = failChance
         self.gamma = gamma
+        self.outOfBoundsReward = outOfBoundsReward
 
     def getCoords(self):
         return self.state[:2]
@@ -33,6 +35,20 @@ class Gridworld:
     
     def randomCoords(self):
         return [random.randint(0, self.gridworld_length-1), random.randint(0, self.gridworld_width-1)]
+    
+    def getNumStates(self):
+        return self.gridworld_length * self.gridworld_width * self.num_orientations * (3**3)
+    
+    def getNumActions(self):
+        return len(self.actions[0])
+    
+    def reset_position(self):
+        pos = self.randomCoords()
+        while pos == self.destination or (pos in self.obstacle_positions):
+            pos = self.randomCoords()
+        orientation = random.randint(0,3)
+        self.state = pos + [orientation]
+        self.state = self.state + self.getSurroundingMarkers()
 
     def initiate_gridworld(self):
         # add a random source and destination to the gridworld
@@ -84,10 +100,11 @@ class Gridworld:
             if self.getCoords() == new_state:
                 self.turn(a)
                 return self.defaultReward
-            # if collision
             if new_state[0] < 0 or new_state[0] >= self.gridworld_length or \
-                new_state[1] < 0 or new_state[1] >= self.gridworld_width or \
-                new_state in self.obstacle_positions:
+                new_state[1] < 0 or new_state[1] >= self.gridworld_width:
+                return self.outOfBoundsReward
+            # if collision
+            if new_state in self.obstacle_positions:
                 return self.collisionReward
             self.state[:2] = new_state
             if new_state == self.destination:
@@ -121,5 +138,17 @@ class Gridworld:
                 else:
                     char_grid[row, col] = '-'
         return char_grid
+    
+    def state_to_ind(self, s):
+        """
+        Converts a state in list format to an index for indexing into a Q value matrix
+        """
+        return self.state[:]
+    
+    def action_to_ind(self, a):
+        """
+        Converts an action in string format to an index for indexing into a Q value matrix
+        """
+        return self.actions[0].index(a)
     
     
