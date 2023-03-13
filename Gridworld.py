@@ -5,15 +5,21 @@ import random
 from operator import add
 
 class Gridworld:
-    def __init__(self, gridworld_length=2, gridworld_width=10, num_obstacles=10,
+    def __init__(self, gridworld_length=10, gridworld_width=-1, num_obstacles=-1,
                  collisionReward= -1, destinationReward= 10, defaultReward= 0, outOfBoundsReward = -1, failChance= 0.1, gamma= 0.9):
         self.gridworld_length = gridworld_length
-        self.gridworld_width = gridworld_width
+        if gridworld_width == -1: # if no width is specified, make it a square
+            self.gridworld_width = gridworld_length
+        else:
+            self.gridworld_width = gridworld_width
         self.grid = np.zeros((gridworld_length,gridworld_width))
         self.ds_actions = {"u": [0,-1], "r": [1,0], "d": [0,1], "l": [-1,0], 
                            "tr": [0,0], "tl": [0,0]} # turn right/left
         self.actions= list(self.ds_actions.keys()),
-        self.num_obstacles = num_obstacles
+        if num_obstacles == -1: # if no number of obstacles is specified, make it ~ sqrt(length*width)
+            self.num_obstacles = np.floor(np.sqrt(gridworld_length*gridworld_width))
+        else:
+            self.num_obstacles = num_obstacles
         self.source, self.destination, self.obstacle_positions = self.initiate_gridworld()
         self.num_orientations = 4
         # Initialize 1 of 4 orientations for agent to be facing
