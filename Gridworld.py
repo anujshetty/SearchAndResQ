@@ -12,7 +12,7 @@ class Gridworld:
             self.gridworld_width = gridworld_length
         else:
             self.gridworld_width = gridworld_width
-        self.grid = np.zeros((gridworld_length,gridworld_width))
+        self.grid = np.zeros((self.gridworld_length,self.gridworld_width))
         self.ds_actions = {"u": [0,-1], "r": [1,0], "d": [0,1], "l": [-1,0], 
                            "tr": [0,0], "tl": [0,0]} # turn right/left
         self.actions= list(self.ds_actions.keys()),
