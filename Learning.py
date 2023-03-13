@@ -75,7 +75,4 @@ class EpsilonGreedyExploration:
         self.epsilon *= self.alpha
         return next_a
     
-        
-     
-            
-    
+

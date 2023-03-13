@@ -5,7 +5,7 @@ import random
 from operator import add
 
 class Gridworld:
-    def __init__(self, gridworld_length=2, gridworld_width=10, num_obstacles=10,
+    def __init__(self, gridworld_length=10, gridworld_width=10, num_obstacles=10,
                  collisionReward= -1, destinationReward= 10, defaultReward= 0, outOfBoundsReward = -1, failChance= 0.1, gamma= 0.9):
         self.gridworld_length = gridworld_length
         self.gridworld_width = gridworld_width
@@ -106,9 +106,14 @@ class Gridworld:
             # if collision
             if new_state in self.obstacle_positions:
                 return self.collisionReward
-            self.state[:2] = new_state
+            
             if new_state == self.destination:
+                self.state[:2] = new_state
                 return self.destinationReward
+            else:
+                temp = self.state[:2]
+                self.state[:2] = new_state
+                return self.defaultReward
         # if no action taken, or step taken without collision/reaching destination
         return self.defaultReward
 
@@ -144,6 +149,92 @@ class Gridworld:
         Converts a state in list format to an index for indexing into a Q value matrix
         """
         return self.state[:]
+
+    def offline(self, gamma = 0.7, error = 0.001):
+        self.gamma = gamma
+        self.num_states = self.gridworld_length*self.gridworld_width*self.num_orientations*20 #20 as only one destination possible (2^3 + 3*2^2)
+        self.utility = np.zeros(self.num_states)
+        self.error = error
+        self.policy = np.zeros(self.num_states)
+
+        return self.runOffline()
+        
+    def runOffline(self):
+        while True:
+            max_error = 0
+            index = 0
+            for x in range(self.gridworld_length):
+                for y in range(self.gridworld_width):
+                    for o in range(self.num_orientations):
+                        for rest in range(20):
+                            if rest < 8:
+                                state = [x,y,o, rest//4, rest//2, rest%2]
+                            elif rest < 12:
+                                state = [x,y,o,2, (rest-8)//2, (rest-8)%2]
+                            elif rest < 16:
+                                state = [x,y,o, (rest-12)//2,2, (rest-12)%2]
+                            else:
+                                state = [x,y,o, (rest-16)//2, (rest-16)%2,2]
+
+                            bellmanList = []
+                            for a in range(3): #front turn left and turn right
+                                bellman = 0
+                                #R(s,a)
+                                if state[:2] == self.destination:
+                                    bellman += self.destinationReward
+                                elif state[:2] in self.obstacle_positions:
+                                    bellman += self.collisionReward
+                                else:
+                                    bellman += self.defaultReward
+
+                                if a == 0:
+                                    #new index
+                                    newIndex = index
+                                    if o == 0:
+                                        newIndex += self.gridworld_length*self.num_orientations*20
+                                    elif o == 1:
+                                        newIndex += self.num_orientations*20
+                                    elif o == 2:
+                                        newIndex -= self.gridworld_length*self.num_orientations*20
+                                    else:
+                                        newIndex -= self.num_orientations*20
+
+                                    xNew = (newIndex/(self.num_orientations*20))%self.gridworld_length
+                                    yNew = (newIndex/(self.num_orientations*20))//self.gridworld_length
+
+                                    if ([xNew, yNew] in self.obstacle_positions) or xNew < 0 or yNew < 0 or xNew >= self.gridworld_length or yNew >= self.gridworld_width:
+                                        newIndex = index
+                                    
+                                    #gamma sum(T(s',s,a)U(s'))                                    
+                                    bellman += self.gamma*self.failChance*self.utility[index]
+                                    bellman += self.gamma*(1 - self.failChance)*self.utility[newIndex]
+
+                                    bellmanList.append(bellman)
+
+                                else:
+                                    #gamma sum(T(s',s,a)U(s'))
+                                    bellman += self.gamma*self.utility[index]
+                                    bellmanList.append(bellman)
+
+                            #search for maximum error
+                            error = abs(self.utility[index] - max(bellmanList))
+                            if error > max_error:
+                                max_error = error
+
+                            #Update
+                            self.utility[index] = max(bellmanList)
+                            self.policy[index] = bellmanList.index(max(bellmanList))
+                            index += 1       
+
+            #convergence check
+            print(max_error,self.error)
+            if self.error >= max_error:
+                break               
+                     
+        return self.policy
+            
+
+
     
     def action_to_ind(self, a):
         """
@@ -151,4 +242,23 @@ class Gridworld:
         """
         return self.actions[0].index(a)
     
+'''    def getGeneralReward(self, old, new):
+        if old[0] == new[0]:
+            if (self.destination[1] - old[1])*(new[1] - old[1]) >= 0:
+                return self.generalReward
+            else:
+                return -self.generalReward
+        else:
+            if (self.destination[0] - old[0])*(new[0] - old[0]) >= 0:
+                return self.generalReward
+            else:
+                return -self.generalReward
+'''
+
+'''
+###########################################################
+############# SOLVING OFFLINE VALUE ITERATION #############
+###########################################################
+'''
+
     

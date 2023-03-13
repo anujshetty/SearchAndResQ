@@ -42,7 +42,7 @@ def chars_to_icons(char_grid):
 def visualize_grid(g):
     """
     Visualize a 2D grid of characters in matplotlib with emojis
-    """
+    
     char_grid = g.gridworld_to_arr()
     colors = ['saddlebrown', 'red', 'green', 'yellow']
     cmap = ListedColormap(colors)
@@ -58,7 +58,7 @@ def visualize_grid(g):
                 plt.text(x , y, f" {icon_grid[y, x]} ",
                     horizontalalignment='center',
                     verticalalignment='center',
-                    rotation=orientations[g.getOrientation()],
+                    #rotation=orientations[g.getOrientation()],
                     rotation_mode='anchor',
                     fontname='Segoe UI Emoji'
                 ) 
@@ -72,7 +72,8 @@ def visualize_grid(g):
     
     
     ax.matshow(num_grid, cmap=cmap, vmin=0, vmax=len(colors))
-    
+    """
+    print(g.state[:2] + g.destination)
     
 #policy score calculator
 def policy_score(rewards, discount_factor):
@@ -95,9 +96,9 @@ def simulate_policy(g, policy_type, run_to_completion=True, num_iters=0, policy=
     def simulate_iteration(rewards):
         if visualize:
             visualize_grid(g)
-            display.display(plt.gcf())
-            display.clear_output(wait=True)
-            time.sleep(0.2)
+            #display.display(plt.gcf())
+            #display.clear_output(wait=True)
+            #time.sleep(0.2)
         orig_state = g.state[:]
         # choose a random action
         #print("Current State:", g.state)
