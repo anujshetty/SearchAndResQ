@@ -49,7 +49,7 @@ def visualize_grid(g):
     fig, ax = plt.subplots()
     num_grid = chars_to_num(char_grid)
     icon_grid = chars_to_icons(char_grid)
-    orientations = ['0', '90', '180', '270']   
+    orientations = [0, 90, 180, 270]   
     
     for y in range(char_grid.shape[0]):
         for x in range(char_grid.shape[1]):
