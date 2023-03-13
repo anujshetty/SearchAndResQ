@@ -23,7 +23,7 @@ class Gridworld:
         self.source, self.destination, self.obstacle_positions = self.initiate_gridworld()
         self.num_orientations = 4
         # Initialize 1 of 4 orientations for agent to be facing
-        orientation = random.randint(0,3)
+        orientation = random.randint(0,self.num_orientations-1)
         self.state = self.source + [orientation]
         self.state = self.state + self.getSurroundingMarkers()
         self.collisionReward = collisionReward

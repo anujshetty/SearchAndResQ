@@ -33,7 +33,7 @@ class QLearning:
         #print(f"Updated Q value of state {s}, action {g.actions[0][a]} to {self.Q[tuple(Q_index)]} using reward {r}")
         
     def extract_policy(self):
-        policy_indices = np.argmax(self.Q, axis=6) # take argmax along actions
+        policy_indices = np.argmax(self.Q, axis=len(self.Q.shape)-1) # take argmax along actions
         return policy_indices
         
 class FixedPolicy:

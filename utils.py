@@ -117,12 +117,14 @@ def simulate_policy(g, policy_type, run_to_completion=True, num_iters=0, policy=
         if model:
             model.update(orig_state, action, reward, g.state)
 
-    if run_to_completion:
-        while g.getCoords() != g.destination:
-            simulate_iteration(rewards)
-    else:
-        for _ in range(num_iters):
-            simulate_iteration(rewards)
-    plt.close("all")
+    while g.getCoords() != g.destination:
+        simulate_iteration(rewards)
+        if not run_to_completion and len(rewards) > num_iters:
+            break
+    if g.getCoords() == g.destination:
+        print(f"Reached destination in {len(rewards)} iterations")
+    if visualize:
+        plt.close("all")
+    
     return policy_score(rewards, g.gamma)
  
