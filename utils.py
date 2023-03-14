@@ -119,7 +119,7 @@ def simulate_policy(g, policy_type, run_to_completion=True, num_iters=0, policy=
 
     while g.getCoords() != g.destination:
         simulate_iteration(rewards)
-        if not run_to_completion and len(rewards) > num_iters:
+        if not run_to_completion and len(rewards) >= num_iters:
             break
     if g.getCoords() == g.destination:
         print(f"Reached destination in {len(rewards)} iterations")
