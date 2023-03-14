@@ -112,6 +112,10 @@ def simulate_policy(g, policy_type, run_to_completion=True, num_iters=0, policy=
         reward = g.takeAction(action)
         #print("Action: ", action, "Reward: ", reward)
         rewards.append(reward)
+        if visualize:
+            print("Original State:", orig_state)
+            print("Action: ", action, "Reward: ", reward)
+            print("New State:", g.state)
         
         # update model if applicable
         if model:

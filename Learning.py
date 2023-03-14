@@ -8,7 +8,9 @@ class QLearning:
     
     def __init__(self, g, alpha):
         self.gamma = g.gamma
-        Q_dims = [g.gridworld_length, g.gridworld_width, g.num_orientations, 3, 3, 3, g.getNumActions()]
+        Q_dims = [g.gridworld_length, g.gridworld_width, g.num_orientations,
+                  #3, 3, 3, 
+                  g.getNumActions()]
         self.Q = np.zeros(Q_dims)
         self.alpha = alpha
         self.actions = g.actions[0]
@@ -46,12 +48,12 @@ class FixedPolicy:
         self.model = model
     
     def next_action(self, s):
-        if np.all(self.model.Q[tuple(self.g.state_to_ind(s))] == 0):
-            print("taking random action")
-            return random.choice(self.g.actions[0])
-        else:
-            print(self.model.Q[tuple(self.g.state_to_ind(s))])
-        return self.g.actions[0][self.policy[tuple(self.g.state_to_ind(s))]]
+        state_ind = tuple(self.g.state_to_ind(s))
+        max_val = max(self.model.Q[state_ind])
+        candidate_actions = [self.g.action_to_ind(a) for a in self.g.actions[0] if self.model.Q[state_ind][self.g.action_to_ind(a)] == max_val]
+        next_a = random.choice(candidate_actions)
+            
+        return self.g.actions[0][next_a]
         
         
 class EpsilonGreedyExploration:

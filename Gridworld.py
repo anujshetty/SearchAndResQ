@@ -6,22 +6,23 @@ from operator import add
 
 class Gridworld:
     def __init__(self, gridworld_length=10, gridworld_width=-1, num_obstacles=-1,
-                 collisionReward= -1, destinationReward= 10, defaultReward= 0, outOfBoundsReward = -1, failChance= 0.1, gamma= 0.9):
+                 collisionReward= -1, destinationReward= 10, defaultReward= 0, outOfBoundsReward = -1, 
+                 failChance= 0.1, gamma= 0.9):
         self.gridworld_length = gridworld_length
         if gridworld_width == -1: # if no width is specified, make it a square
             self.gridworld_width = gridworld_length
         else:
             self.gridworld_width = gridworld_width
         self.grid = np.zeros((self.gridworld_length,self.gridworld_width))
-        self.ds_actions = {"u": [0,-1], "r": [1,0], "d": [0,1], "l": [-1,0], 
-                           "tr": [0,0], "tl": [0,0]} # turn right/left
+        self.ds_actions = {"u": [-1,0], "r": [0,1], "d": [1,0], "l": [0,-1], 
+                           }#"tr": [0,0], "tl": [0,0]} # turn right/left
         self.actions= list(self.ds_actions.keys()),
         if num_obstacles == -1: # if no number of obstacles is specified, make it ~ sqrt(length*width)
             self.num_obstacles = np.floor(np.sqrt(gridworld_length*gridworld_width))
         else:
             self.num_obstacles = num_obstacles
         self.source, self.destination, self.obstacle_positions = self.initiate_gridworld()
-        self.num_orientations = 4
+        self.num_orientations = 1 #4
         # Initialize 1 of 4 orientations for agent to be facing
         orientation = random.randint(0,self.num_orientations-1)
         self.state = self.source + [orientation]
@@ -43,7 +44,7 @@ class Gridworld:
         return [random.randint(0, self.gridworld_length-1), random.randint(0, self.gridworld_width-1)]
     
     def getNumStates(self):
-        return self.gridworld_length * self.gridworld_width * self.num_orientations * (3**3)
+        return self.gridworld_length * self.gridworld_width * self.num_orientations #* (3**3)
     
     def getNumActions(self):
         return len(self.actions[0])
@@ -52,7 +53,7 @@ class Gridworld:
         pos = self.randomCoords()
         while pos == self.destination or (pos in self.obstacle_positions):
             pos = self.randomCoords()
-        orientation = random.randint(0,3)
+        orientation = random.randint(0,self.num_orientations-1)
         self.state = pos + [orientation]
         self.state = self.state + self.getSurroundingMarkers()
 
@@ -81,6 +82,7 @@ class Gridworld:
     
     # get the markers of the 3 cells
     def getSurroundingMarkers(self):
+        return []
         markers = []
         x, y = self.ds_actions[self.actions[0][self.getOrientation()]]
         if x == 0:
@@ -99,7 +101,7 @@ class Gridworld:
             self.state[2] = (self.state[2] - 1) % 4
 
     def takeAction(self, a):
-        # take action with probability 0.1, stay in same state with probability 0.9
+        # take action with probability 1-self.failChance, stay in same state with probability self.failChance
         if random.random() < 1 - self.failChance:
             new_state = list(map(add, self.getCoords(), self.ds_actions[a]))
             # if turning
