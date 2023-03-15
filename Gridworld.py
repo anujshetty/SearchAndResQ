@@ -15,14 +15,14 @@ class Gridworld:
             self.gridworld_width = gridworld_width
         self.grid = np.zeros((self.gridworld_length,self.gridworld_width))
         self.ds_actions = {"u": [-1,0], "r": [0,1], "d": [1,0], "l": [0,-1], 
-                           }#"tr": [0,0], "tl": [0,0]} # turn right/left
+                           "tr": [0,0], "tl": [0,0]} # turn right/left
         self.actions= list(self.ds_actions.keys()),
         if num_obstacles == -1: # if no number of obstacles is specified, make it ~ sqrt(length*width)
             self.num_obstacles = np.floor(np.sqrt(gridworld_length*gridworld_width))
         else:
             self.num_obstacles = num_obstacles
         self.source, self.destination, self.obstacle_positions = self.initiate_gridworld()
-        self.num_orientations = 1 #4
+        self.num_orientations = 4
         # Initialize 1 of 4 orientations for agent to be facing
         orientation = random.randint(0,self.num_orientations-1)
         self.state = self.source + [orientation]
@@ -44,7 +44,7 @@ class Gridworld:
         return [random.randint(0, self.gridworld_length-1), random.randint(0, self.gridworld_width-1)]
     
     def getNumStates(self):
-        return self.gridworld_length * self.gridworld_width * self.num_orientations #* (3**3)
+        return self.gridworld_length * self.gridworld_width * self.num_orientations * (3**3)
     
     def getNumActions(self):
         return len(self.actions[0])
@@ -82,7 +82,6 @@ class Gridworld:
     
     # get the markers of the 3 cells
     def getSurroundingMarkers(self):
-        return []
         markers = []
         x, y = self.ds_actions[self.actions[0][self.getOrientation()]]
         if x == 0:
@@ -151,7 +150,7 @@ class Gridworld:
         """
         Converts a state in list format to an index for indexing into a Q value matrix
         """
-        return self.state[:]
+        return s[:]
     
     def action_to_ind(self, a):
         """

@@ -9,7 +9,7 @@ class QLearning:
     def __init__(self, g, alpha):
         self.gamma = g.gamma
         Q_dims = [g.gridworld_length, g.gridworld_width, g.num_orientations,
-                  #3, 3, 3, 
+                  3, 3, 3, 
                   g.getNumActions()]
         self.Q = np.zeros(Q_dims)
         self.alpha = alpha
@@ -29,10 +29,7 @@ class QLearning:
         a = g.action_to_ind(a)
         s_prime = g.state_to_ind(s_prime)
         Q_index = s + [a]
-        #print("Q index:", Q_index)
         self.Q[tuple(Q_index)] += self.alpha * (r + self.gamma * max(self.Q[tuple(s_prime)]) - self.Q[tuple(Q_index)])
-        
-        #print(f"Updated Q value of state {s}, action {g.actions[0][a]} to {self.Q[tuple(Q_index)]} using reward {r}")
         
     def extract_policy(self):
         policy_indices = np.argmax(self.Q, axis=len(self.Q.shape)-1) # take argmax along actions

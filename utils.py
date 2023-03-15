@@ -4,6 +4,7 @@ from matplotlib.colors import ListedColormap
 import time
 from IPython import display
 import random
+import copy
 
 # Visualization helper functions
 def chars_to_num(char_grid):
@@ -98,24 +99,17 @@ def simulate_policy(g, policy_type, run_to_completion=True, num_iters=0, policy=
             display.display(plt.gcf())
             display.clear_output(wait=True)
             time.sleep(0.2)
-        orig_state = g.state[:]
+        orig_state = copy.deepcopy(g.state)
         # choose a random action
-        #print("Current State:", g.state)
         if policy_type=="random":
             action = random.choice(g.actions[0])
         elif policy_type=="epsilon-greedy":
             action = policy.next_action(model, orig_state)
         elif policy_type=="fixed":
             action = policy.next_action(orig_state)
-        #print(f'Taking action: {action}')
         # take the action and update the state
         reward = g.takeAction(action)
-        #print("Action: ", action, "Reward: ", reward)
         rewards.append(reward)
-        if visualize:
-            print("Original State:", orig_state)
-            print("Action: ", action, "Reward: ", reward)
-            print("New State:", g.state)
         
         # update model if applicable
         if model:
@@ -125,8 +119,6 @@ def simulate_policy(g, policy_type, run_to_completion=True, num_iters=0, policy=
         simulate_iteration(rewards)
         if not run_to_completion and len(rewards) >= num_iters:
             break
-    if g.getCoords() == g.destination:
-        print(f"Reached destination in {len(rewards)} iterations")
     if visualize:
         plt.close("all")
     
