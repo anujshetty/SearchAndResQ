@@ -56,6 +56,12 @@ class Gridworld:
         orientation = random.randint(0,self.num_orientations-1)
         self.state = pos + [orientation]
         self.state = self.state + self.getSurroundingMarkers()
+    
+    def reset_destination(self):
+        pos = self.randomCoords()
+        while pos == self.state[:2] or (pos in self.obstacle_positions):
+            pos = self.randomCoords()
+        self.destination = pos
 
     def initiate_gridworld(self):
         # add a random source and destination to the gridworld
