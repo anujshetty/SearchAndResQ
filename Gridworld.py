@@ -156,6 +156,7 @@ class Gridworld:
         """
         Converts a state in list format to an index for indexing into a Q value matrix
         """
+        print(s[:])
         return s[:]
     
     def action_to_ind(self, a):
@@ -163,5 +164,3 @@ class Gridworld:
         Converts an action in string format to an index for indexing into a Q value matrix
         """
         return self.actions[0].index(a)
-    
-    

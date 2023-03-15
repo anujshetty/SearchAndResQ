@@ -74,7 +74,66 @@ class EpsilonGreedyExploration:
         self.epsilon *= self.alpha
         return next_a
     
-        
-     
-            
-    
+class ValueIteration:
+    """
+    Defines an offline policy based on value iteration
+    """
+
+    def __init__(self, g, gamma=0.9, residual = 0.0001, maxIter = 1000, search = 10):
+        self.gamma = 0.9
+        self.search = search
+        self.res = residual
+        self.maxIter = maxIter
+        self.converged = False
+        self.g = g
+        self.U_dims = [g.gridworld_length, g.gridworld_width, g.num_orientations,3, 3, 3]
+        self.U = np.zeros(U_dims)
+        self.polciy = np.zeros(U_dims)
+        if self.update():
+            print("Converged")
+        else:
+            print("Not converged, max iteration reached")
+        self.extract_policy()
+
+    def update(self):
+        counter = 0
+        while not self.converged:
+            counter += 1
+            maxRes = 0
+            A = self.g.actions
+            for x in range[U_dims[0]]:
+                for y in range[self.U_dims[1]]:
+                    for o in range[self.U_dims[2]]:
+                        for tl in range[self.U_dims[3]]:
+                            for m in range[self.U_dims[3]]:
+                                for tr in range[self.U_dims[3]]:
+                                    self.g.state = [x,y,o,tl,m,tr]
+                                    s = self.g.state
+                                    old_U = self.U[ind]
+                                    self.U[ind] = max((self.g.takeAction(s, a) + self.gamma * self.U[self.g.state]) for a in A)
+                                    if maxRes <= abs(self.U[ind] - old_U):
+                                        max_Res = abs(self.U[ind] - old_U)
+            if max_Res <= self.res:
+                self.converger = True
+            if counter == self.maxIter:
+                break
+        return self.converged
+
+    def extract_policy(self):
+        A = self.g.actions
+        for x in range[U_dims[0]]:
+            for y in range[self.U_dims[1]]:
+                for o in range[self.U_dims[2]]:
+                    for tl in range[self.U_dims[3]]:
+                        for m in range[self.U_dims[3]]:
+                            for tr in range[self.U_dims[3]]:
+                                self.g.state = [x,y,o,tl,m,tr]
+                                s = self.g.state
+                                max_U = max((self.g.takeAction(s, a) + self.gamma * self.U[self.g.state]) for a in A)
+                                candiadate_actions = [a for a in A if (self.g.takeAction(s, a) + self.gamma * self.U[self.g.state]) == max_val]
+                                self.policy[s] = random.choice(candidate_actions)
+        return True
+
+    def next_action(self, s):
+
+        return self.policy[s]

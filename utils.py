@@ -103,6 +103,8 @@ def simulate_policy(g, policy_type, run_to_completion=True, num_iters=0, policy=
         # choose a random action
         if policy_type=="random":
             action = random.choice(g.actions[0])
+        elif policy_type=="offline":
+            action = model.next_action(orig_state)
         elif policy_type=="epsilon-greedy":
             action = policy.next_action(model, orig_state)
         elif policy_type=="fixed":
