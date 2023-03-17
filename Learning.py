@@ -124,7 +124,7 @@ class EpsilonGreedyExploration(Policy):
 
     def __init__(self, g, epsilon, alpha=1):
         Policy.__init__(self, g)
-        self.isModelUpdate = False
+        self.isModelUpdate = True
         self.epsilon = epsilon
         self.alpha = alpha
     

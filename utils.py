@@ -5,6 +5,7 @@ import time
 from IPython import display
 import random
 import copy
+import numpy as np
 
 # Visualization helper functions
 def chars_to_num(char_grid):
@@ -84,6 +85,25 @@ def policy_score(rewards, discount_factor):
     for i in range(len(rewards)):
         score += (discount_factor**i)*rewards[i]
     return score
+
+def plot_scores(scores, batch_size=1000, xlabel=None, ylabel="Average score"):
+    """
+    Plots the scores of a policy over time
+    """
+    avg_scores = np.mean(np.array(scores).reshape(-1, batch_size), axis=1)
+    plt.plot(range(len(avg_scores)), avg_scores)
+    if xlabel is None:
+        xlabel = f"Batch number ({batch_size} episodes per batch)"
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.show()
+
+def heatmap(array):
+    # Array can be Q or U, we take max over all but the first 2 state variables
+    axes = tuple(range(-1,-len(array.shape)+1,-1)) 
+    array_max = np.max(array, axis=axes)
+    plt.imshow(array_max, cmap='hot', interpolation='nearest')
+    plt.show()
 
 def simulate_policy(g, run_to_completion=True, num_steps=0, policy=None, model=None, visualize=True):
     """

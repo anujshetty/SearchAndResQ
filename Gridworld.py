@@ -109,7 +109,7 @@ class Gridworld:
             self.state[2] = (self.state[2] - 1) % 4
 
     def takeAction(self, a, s=None):
-        if not s:
+        if s:
             self.state = s
         # take action with probability 1-self.failChance, stay in same state with probability self.failChance
         if random.random() < 1 - self.failChance:
