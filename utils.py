@@ -29,16 +29,16 @@ def chars_to_icons(char_grid):
     """
     Creates a copy of a 2D character gridworld converted into a 2D array of integers
     for easy visualization in matplotlib. The mapping is as follows:
-    '-' --> '🍂'
-    'A' --> '🤖' 
-    'O' --> '🌲'
-    'D' --> '🧗🏽'
+    '-' --> '-'
+    'A' --> 'A' 
+    'O' --> 'X'
+    'D' --> 'D'
     """
     icon_grid = char_grid.copy()
-    icon_grid[icon_grid == '-'] = '🍂'
-    icon_grid[icon_grid == 'A'] = '🤖'
-    icon_grid[icon_grid == 'O'] = '🌲'
-    icon_grid[icon_grid == 'D'] = '🧗'
+    icon_grid[icon_grid == '-'] = '-'
+    icon_grid[icon_grid == 'A'] = 'A'
+    icon_grid[icon_grid == 'O'] = 'X'
+    icon_grid[icon_grid == 'D'] = 'D'
     return icon_grid
 
 def visualize_grid(g):
@@ -56,19 +56,19 @@ def visualize_grid(g):
     for y in range(char_grid.shape[0]):
         for x in range(char_grid.shape[1]):
 
-            if icon_grid[y, x] == '🤖':
+            if icon_grid[y, x] == 'A':
                 plt.text(x , y, f" {icon_grid[y, x]} ",
                     horizontalalignment='center',
                     verticalalignment='center',
                     rotation=orientations[g.getOrientation()],
                     rotation_mode='anchor',
-                    fontname='Segoe UI Emoji'
+                    #fontname='Segoe UI Emoji'
                 ) 
             else:
                 plt.text(x , y, icon_grid[y, x],
                     horizontalalignment='center',
                     verticalalignment='center',
-                    fontname='Segoe UI Emoji'
+                    #fontname='Segoe UI Emoji'
                 )
     
     

@@ -44,7 +44,7 @@ class ValueIterationModel:
         self.g = g
         self.actions = g.actions[0]
         self.gamma = g.gamma
-        self.U_dims = [g.gridworld_length, g.gridworld_width, g.num_orientations, 3, 3, 3]
+        self.U_dims = [g.gridworld_length, g.gridworld_width, g.num_orientations]
         self.U = np.zeros(self.U_dims)
         self.policy = np.zeros(self.U_dims)       
 
@@ -52,8 +52,29 @@ class ValueIterationModel:
         counter = 0
         while not self.converged:
             counter += 1
-            maxRes = 0
+            maxRes = 0        
+            printer = 0    
             A = self.g.actions[0]
+            for i in range(self.U_dims[0]):
+                for j in range(self.U_dims[1]):
+                    for o in range(self.U_dims[2]):
+                        self.g.state[:3] = [i,j,o]
+                        self.g.state[3:] = self.g.getSurroundingMarkers()
+                        old_U = self.U[i,j,o]
+                        old_state = self.g.state
+                        #Now you have self.g.state iterating through every x,y,o and the associated surrounding markers
+                        #The U and policy would be a list of length 4 for each x,y
+
+                        #I have replaced val with self.U[i,j,o], is that correct?
+                        self.U[i,j,o] = max((self.g.takeAction(a, old_state) + self.gamma*(self.g.failChance*self.U[i,j,o] + (1-self.g.failChance)*self.U[tuple(self.g.state[:3])])) for a in A)
+                        
+                        if maxRes <= abs(self.U[i,j,o] - old_U):
+                            maxRes = abs(self.U[i,j,o] - old_U)
+                        
+
+            #print(maxRes)
+
+            """
             for s_ind, val in np.ndenumerate(self.U):
                 self.g.state = list(s_ind)
                 old_U = self.U[s_ind]
@@ -62,6 +83,7 @@ class ValueIterationModel:
                 if maxRes <= abs(self.U[s_ind] - old_U):
                     maxRes = abs(self.U[s_ind] - old_U)
             print(maxRes)
+            """
             if maxRes <= self.res:
                 self.converged = True
             if counter == self.maxIter:
@@ -70,7 +92,7 @@ class ValueIterationModel:
 
     def lookahead(self, s, a):
         self.g.state = s
-        value = self.g.takeAction(a) + self.gamma*(self.g.failChance*self.U[tuple(s)] + (1-self.g.failChance)*self.U[tuple(self.g.state)])
+        value = self.g.takeAction(a) + self.gamma*(self.g.failChance*self.U[tuple(s[:3])] + (1-self.g.failChance)*self.U[tuple(self.g.state[:3])])
         return value
 
 
@@ -87,9 +109,13 @@ class Policy:
         raise NotImplementedError("You must implement this method")
     
     def greedy_action(self, model, s):
-        max_val = max([model.lookahead(s, a) for a in self.g.actions[0]])
+        list_temp = []
+        for a_i in range(len(self.g.actions[0])):
+            a = self.g.actions[0][a_i]
+            list_temp.append([model.lookahead(s, a) for a in self.g.actions[0]])
+        max_val = max(list_temp)
         # choose randomly from the best possible actions in the event of a tie
-        candidate_actions = [a for a in self.g.actions[0] if model.lookahead(s, a) == max_val]
+        candidate_actions = [self.g.actions[0][a_i] for a_i in range(len(self.g.actions[0])) if list_temp[a_i] == max_val]
         next_a = random.choice(candidate_actions)
             
         return next_a
