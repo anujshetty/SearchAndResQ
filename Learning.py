@@ -30,27 +30,41 @@ class QLearning:
         s_prime = g.state_to_ind(s_prime)
         Q_index = s + [a]
         self.Q[tuple(Q_index)] += self.alpha * (r + self.gamma * max(self.Q[tuple(s_prime)]) - self.Q[tuple(Q_index)])
+
+
+class Policy:
+    """
+    Defines a policy for a given model
+    """
+    
+    def __init__(self, g):
+        self.g = g
         
-    def extract_policy(self):
-        policy_indices = np.argmax(self.Q, axis=len(self.Q.shape)-1) # take argmax along actions
-        return policy_indices
-        
-class FixedPolicy:
+    def next_action(self, s):
+        raise NotImplementedError("You must implement this method")
+    
+    def greedy_action(self, s, model):
+        # state_ind = tuple(self.g.state_to_ind(s))
+        # max_val = max(self.model.Q[state_ind])
+        # candidate_actions = [self.g.action_to_ind(a) for a in self.g.actions[0] if self.model.Q[state_ind][self.g.action_to_ind(a)] == max_val]
+        # next_a = random.choice(candidate_actions)
+            
+        return self.g.actions[0][next_a]
+
+class FixedPolicy(Policy):
     """
     Helper class to apply a learned policy
     """
-    def __init__(self, policy, g, model):
-        self.policy = policy
-        self.g = g
-        self.model = model
+    def __init__(self, g):
+        Policy.__init__(self, g)
     
-    def next_action(self, s):
-        state_ind = tuple(self.g.state_to_ind(s))
-        max_val = max(self.model.Q[state_ind])
-        candidate_actions = [self.g.action_to_ind(a) for a in self.g.actions[0] if self.model.Q[state_ind][self.g.action_to_ind(a)] == max_val]
+    def next_action(self, model, s):
+        A = model.actions
+        max_val = max([model.lookahead(s, a) for a in A])
+        candidate_actions = [a for a in A if model.lookahead(s, a) == max_val]
         next_a = random.choice(candidate_actions)
             
-        return self.g.actions[0][next_a]
+        return next_a
         
         
 class EpsilonGreedyExploration:
@@ -58,7 +72,8 @@ class EpsilonGreedyExploration:
     Defines exploration policy with specified parameter epsilon and decay rate alpha
     """
 
-    def __init__(self, epsilon, alpha=1):
+    def __init__(self, g, epsilon, alpha=1):
+        Policy.__init__(self, g)
         self.epsilon = epsilon
         self.alpha = alpha
     
@@ -74,66 +89,43 @@ class EpsilonGreedyExploration:
         self.epsilon *= self.alpha
         return next_a
     
-class ValueIteration:
+class ValueIterationModel:
     """
     Defines an offline policy based on value iteration
     """
 
-    def __init__(self, g, gamma=0.9, residual = 0.0001, maxIter = 1000, search = 10):
-        self.gamma = 0.9
-        self.search = search
+    def __init__(self, g, residual = 0.001, maxIter = 1000):
         self.res = residual
         self.maxIter = maxIter
         self.converged = False
         self.g = g
-        self.U_dims = [g.gridworld_length, g.gridworld_width, g.num_orientations,3, 3, 3]
-        self.U = np.zeros(U_dims)
-        self.polciy = np.zeros(U_dims)
-        if self.update():
-            print("Converged")
-        else:
-            print("Not converged, max iteration reached")
-        self.extract_policy()
+        self.actions = g.actions[0]
+        self.gamma = g.gamma
+        self.U_dims = [g.gridworld_length, g.gridworld_width, g.num_orientations, 3, 3, 3]
+        self.U = np.zeros(self.U_dims)
+        self.policy = np.zeros(self.U_dims)       
 
-    def update(self):
+    def value_update(self):
         counter = 0
         while not self.converged:
             counter += 1
             maxRes = 0
-            A = self.g.actions
-            for x in range[U_dims[0]]:
-                for y in range[self.U_dims[1]]:
-                    for o in range[self.U_dims[2]]:
-                        for tl in range[self.U_dims[3]]:
-                            for m in range[self.U_dims[3]]:
-                                for tr in range[self.U_dims[3]]:
-                                    self.g.state = [x,y,o,tl,m,tr]
-                                    s = self.g.state
-                                    old_U = self.U[ind]
-                                    self.U[ind] = max((self.g.takeAction(s, a) + self.gamma * self.U[self.g.state]) for a in A)
-                                    if maxRes <= abs(self.U[ind] - old_U):
-                                        max_Res = abs(self.U[ind] - old_U)
-            if max_Res <= self.res:
-                self.converger = True
+            A = self.g.actions[0]
+            for s_ind, val in np.ndenumerate(self.U):
+                self.g.state = list(s_ind)
+                old_U = self.U[s_ind]
+                self.U[s_ind] = max((self.g.takeAction(a, self.g.state) + 
+                                     self.gamma*(self.g.failChance*val + (1-self.g.failChance)*self.U[tuple(self.g.state)])) for a in A)
+                if maxRes <= abs(self.U[s_ind] - old_U):
+                    maxRes = abs(self.U[s_ind] - old_U)
+            print(maxRes)
+            if maxRes <= self.res:
+                self.converged = True
             if counter == self.maxIter:
                 break
         return self.converged
 
-    def extract_policy(self):
-        A = self.g.actions
-        for x in range[U_dims[0]]:
-            for y in range[self.U_dims[1]]:
-                for o in range[self.U_dims[2]]:
-                    for tl in range[self.U_dims[3]]:
-                        for m in range[self.U_dims[3]]:
-                            for tr in range[self.U_dims[3]]:
-                                self.g.state = [x,y,o,tl,m,tr]
-                                s = self.g.state
-                                max_U = max((self.g.takeAction(s, a) + self.gamma * self.U[self.g.state]) for a in A)
-                                candiadate_actions = [a for a in A if (self.g.takeAction(s, a) + self.gamma * self.U[self.g.state]) == max_val]
-                                self.policy[s] = random.choice(candidate_actions)
-        return True
-
-    def next_action(self, s):
-
-        return self.policy[s]
+    def lookahead(self, s, a):
+        self.g.state = s
+        value = self.g.takeAction(a) + self.gamma*(self.g.failChance*self.U[tuple(s)] + (1-self.g.failChance)*self.U[tuple(self.g.state)])
+        return value

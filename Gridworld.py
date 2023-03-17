@@ -57,6 +57,9 @@ class Gridworld:
         self.state = pos + [orientation]
         self.state = self.state + self.getSurroundingMarkers()
     
+    def reset_state(self, s):
+        self.state = s
+    
     def reset_destination(self):
         pos = self.randomCoords()
         while pos == self.state[:2] or (pos in self.obstacle_positions):
@@ -105,7 +108,9 @@ class Gridworld:
         if a == 'tl':
             self.state[2] = (self.state[2] - 1) % 4
 
-    def takeAction(self, a):
+    def takeAction(self, a, s=None):
+        if not s:
+            self.state = s
         # take action with probability 1-self.failChance, stay in same state with probability self.failChance
         if random.random() < 1 - self.failChance:
             new_state = list(map(add, self.getCoords(), self.ds_actions[a]))
@@ -156,7 +161,6 @@ class Gridworld:
         """
         Converts a state in list format to an index for indexing into a Q value matrix
         """
-        print(s[:])
         return s[:]
     
     def action_to_ind(self, a):
