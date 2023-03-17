@@ -1,7 +1,7 @@
 import numpy as np
 import random
 
-class QLearning:
+class QLearningModel:
     """
     Defines online Q-learning setup and update rule for a given gridworld
     """
@@ -32,63 +32,6 @@ class QLearning:
         self.Q[tuple(Q_index)] += self.alpha * (r + self.gamma * max(self.Q[tuple(s_prime)]) - self.Q[tuple(Q_index)])
 
 
-class Policy:
-    """
-    Defines a policy for a given model
-    """
-    
-    def __init__(self, g):
-        self.g = g
-        
-    def next_action(self, s):
-        raise NotImplementedError("You must implement this method")
-    
-    def greedy_action(self, s, model):
-        # state_ind = tuple(self.g.state_to_ind(s))
-        # max_val = max(self.model.Q[state_ind])
-        # candidate_actions = [self.g.action_to_ind(a) for a in self.g.actions[0] if self.model.Q[state_ind][self.g.action_to_ind(a)] == max_val]
-        # next_a = random.choice(candidate_actions)
-            
-        return self.g.actions[0][next_a]
-
-class FixedPolicy(Policy):
-    """
-    Helper class to apply a learned policy
-    """
-    def __init__(self, g):
-        Policy.__init__(self, g)
-    
-    def next_action(self, model, s):
-        A = model.actions
-        max_val = max([model.lookahead(s, a) for a in A])
-        candidate_actions = [a for a in A if model.lookahead(s, a) == max_val]
-        next_a = random.choice(candidate_actions)
-            
-        return next_a
-        
-        
-class EpsilonGreedyExploration:
-    """
-    Defines exploration policy with specified parameter epsilon and decay rate alpha
-    """
-
-    def __init__(self, g, epsilon, alpha=1):
-        Policy.__init__(self, g)
-        self.epsilon = epsilon
-        self.alpha = alpha
-    
-    def next_action(self, model, s):
-        A = model.actions
-        if np.random.uniform() < self.epsilon:
-            next_a = random.choice(model.actions)
-        else:
-            # choose randomly from the best possible actions in the event of a tie
-            max_val = max([model.lookahead(s, a) for a in A])
-            candidate_actions = [a for a in A if model.lookahead(s, a) == max_val]
-            next_a = random.choice(candidate_actions)
-        self.epsilon *= self.alpha
-        return next_a
-    
 class ValueIterationModel:
     """
     Defines an offline policy based on value iteration
@@ -129,3 +72,68 @@ class ValueIterationModel:
         self.g.state = s
         value = self.g.takeAction(a) + self.gamma*(self.g.failChance*self.U[tuple(s)] + (1-self.g.failChance)*self.U[tuple(self.g.state)])
         return value
+
+
+class Policy:
+    """
+    Defines a policy for a given model
+    """
+    
+    def __init__(self, g):
+        self.g = g
+        self.isModelUpdate = False
+        
+    def next_action(self, s):
+        raise NotImplementedError("You must implement this method")
+    
+    def greedy_action(self, model, s):
+        max_val = max([model.lookahead(s, a) for a in self.g.actions[0]])
+        # choose randomly from the best possible actions in the event of a tie
+        candidate_actions = [a for a in self.g.actions[0] if model.lookahead(s, a) == max_val]
+        next_a = random.choice(candidate_actions)
+            
+        return next_a
+
+
+class RandomPolicy(Policy):
+    """
+    Defines a random policy
+    """
+    
+    def __init__(self, g):
+        Policy.__init__(self, g)
+    
+    def next_action(self, model, s):
+        return random.choice(self.g.actions[0])
+
+class GreedyPolicy(Policy):
+    """
+    Helper class to apply a learned policy
+    """
+    def __init__(self, g):
+        Policy.__init__(self, g)
+    
+    def next_action(self, model, s):
+        return self.greedy_action(model, s)
+        
+        
+class EpsilonGreedyExploration(Policy):
+    """
+    Defines exploration policy with specified parameter epsilon and decay rate alpha
+    """
+
+    def __init__(self, g, epsilon, alpha=1):
+        Policy.__init__(self, g)
+        self.isModelUpdate = False
+        self.epsilon = epsilon
+        self.alpha = alpha
+    
+    def next_action(self, model, s):
+        A = model.actions
+        if np.random.uniform() < self.epsilon:
+            next_a = random.choice(model.actions)
+        else:
+            next_a = self.greedy_action(model, s)
+        self.epsilon *= self.alpha
+        return next_a
+    

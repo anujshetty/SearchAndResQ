@@ -85,12 +85,10 @@ def policy_score(rewards, discount_factor):
         score += (discount_factor**i)*rewards[i]
     return score
 
-def simulate_policy(g, policy_type, run_to_completion=True, num_steps=0, policy=None, model=None, visualize=True):
+def simulate_policy(g, run_to_completion=True, num_steps=0, policy=None, model=None, visualize=True):
     """
     Simulates a run of specified policy in a given gridworld g for either num_steps steps or until target is reached.
     Returns discounted sum of rewards for the input policy.
-    Policy type can either be "random" (which auto-generates actions) or "fixed" (which uses the provided policy dictionary)
-    policy dictionary should contain mappings (s) -> (a) given states
     """
     rewards=[]
     def simulate_step(rewards):
@@ -100,19 +98,12 @@ def simulate_policy(g, policy_type, run_to_completion=True, num_steps=0, policy=
             display.clear_output(wait=True)
             time.sleep(0.2)
         orig_state = copy.deepcopy(g.state)
-        # choose a random action
-        if policy_type=="random":
-            action = random.choice(g.actions[0])
-        elif policy_type=="epsilon-greedy":
-            action = policy.next_action(model, orig_state)
-        elif policy_type=="fixed":
-            print(model)
-            action = policy.next_action(model, orig_state)
+        action = policy.next_action(model, orig_state)
         # take the action and update the state
         reward = g.takeAction(action)
         rewards.append(reward)
         # update model if applicable
-        if model and policy_type != "fixed":
+        if policy.isModelUpdate:
             model.update(orig_state, action, reward, g.state)
 
     while g.getCoords() != g.destination:
